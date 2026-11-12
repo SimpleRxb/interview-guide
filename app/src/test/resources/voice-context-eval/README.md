@@ -1,10 +1,10 @@
 # 语音上下文压缩对照（P0-05）
 
 ```bash
-RUN_VOICE_CONTEXT_EVAL=true ./gradlew :app:voiceContextEvaluation --no-daemon
+mvn -f app/pom.xml test -P voice-context-eval
 ```
 
-需要 `.env` 中的 `AI_BAILIAN_API_KEY`。可通过环境变量 `AI_MODEL` 覆盖默认 `qwen3.5-flash`，环境变量优先于 `.env`。正常路径为 1 次摘要 + 6 次回答调用，会产生 Provider 费用；普通 `:app:test` 排除 `voice-context-eval` 标签，独立任务仍要求显式环境变量开关。
+需要 `.env` 中的 `AI_BAILIAN_API_KEY`。可通过环境变量 `AI_MODEL` 覆盖默认 `qwen3.5-flash`，环境变量优先于 `.env`。正常路径为 1 次摘要 + 6 次回答调用，会产生 Provider 费用；普通 `mvn -f app/pom.xml test` 通过 surefire 的 `excludedGroups` 排除 `voice-context-eval` 标签，只有 `-P voice-context-eval` 会选中该标签并注入 `run.voice.context.eval=true` 开关（也可用环境变量 `RUN_VOICE_CONTEXT_EVAL=true` 打开第二层开关）。
 
 ## 测量口径
 
@@ -19,7 +19,7 @@ RUN_VOICE_CONTEXT_EVAL=true ./gradlew :app:voiceContextEvaluation --no-daemon
 
 ## 产物与限制
 
-原始报告写入 `app/build/reports/voice-context-eval/`；确认脱敏后归档到本目录 `baselines/`。JSON 包含数据哈希、配置、模型、历史字符数和逐次耗时/Token；Markdown 为阅读版。失败运行不会产出成功报告，应检查 Gradle 测试结果。
+原始报告写入 `app/target/reports/voice-context-eval/`；确认脱敏后归档到本目录 `baselines/`。JSON 包含数据哈希、配置、模型、历史字符数和逐次耗时/Token；Markdown 为阅读版。失败运行不会产出成功报告，应检查 `app/target/surefire-reports` 下的测试结果。
 
 仅三组且使用高重复虚构语料，网络、缓存和模型推理输出长度均会影响结果。这些数据只能证明本次执行与成本口径，不能证明答案质量不下降、生产延迟必然降低或长期成本下降。需要正式性能结论时另做代表性会话、质量复核和生产观测。
 

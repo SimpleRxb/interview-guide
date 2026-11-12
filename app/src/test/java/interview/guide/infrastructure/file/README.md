@@ -20,30 +20,30 @@
 cd /Users/guide/Desktop/interview-guide
 
 # 运行所有测试
-./gradlew test
+mvn -f app/pom.xml test
 
 # 只运行 DocumentParseService 相关测试
-./gradlew test --tests "*DocumentParseService*"
+mvn -f app/pom.xml test -Dtest='*DocumentParseService*'
 ```
 
 ### 运行特定测试类
 
 ```bash
 # 运行单元测试
-./gradlew test --tests "interview.guide.infrastructure.file.DocumentParseServiceTest"
+mvn -f app/pom.xml test -Dtest='interview.guide.infrastructure.file.DocumentParseServiceTest'
 
 # 运行集成测试
-./gradlew test --tests "interview.guide.infrastructure.file.DocumentParseIntegrationTest"
+mvn -f app/pom.xml test -Dtest='interview.guide.infrastructure.file.DocumentParseIntegrationTest'
 ```
 
 ### 运行特定测试方法
 
 ```bash
 # 运行单个测试方法
-./gradlew test --tests "DocumentParseServiceTest.testParseTxtFile"
+mvn -f app/pom.xml test -Dtest='DocumentParseServiceTest#testParseTxtFile'
 
 # 使用通配符
-./gradlew test --tests "DocumentParseServiceTest.testParse*"
+mvn -f app/pom.xml test -Dtest='DocumentParseServiceTest#testParse*'
 ```
 
 ## 📊 测试覆盖
@@ -115,27 +115,16 @@ app/src/test/resources/test-files/
 
 ### 查看测试报告
 
-测试运行后，可以在以下位置查看详细报告：
+测试运行后，报告位于：
 
 ```
-app/build/reports/tests/test/index.html
+app/target/surefire-reports/
 ```
 
-在浏览器中打开即可查看：
+每个测试类对应同名 `.txt` 与 `.xml`，可查看：
 - 测试通过率
 - 执行时间
-- 失败详情
-- 代码覆盖率（如果启用）
-
-### 生成测试覆盖率报告
-
-```bash
-# 运行测试并生成覆盖率报告
-./gradlew test jacocoTestReport
-
-# 查看报告
-open app/build/reports/jacoco/test/html/index.html
-```
+- 失败详情与堆栈
 
 ## 🔍 测试要点
 

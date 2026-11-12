@@ -13,14 +13,14 @@
 
 | 阶段 | 命令 | 结果 | 说明 |
 | --- | --- | --- | --- |
-| RED | `./gradlew :app:test --tests 'interview.guide.modules.voiceinterview.service.VoiceInterviewEvaluationRecoveryTest' --tests 'interview.guide.modules.voiceinterview.controller.VoiceInterviewControllerEvaluationTest' --no-daemon` | 失败 | 5 个用例全部失败：异常断线和超时会话未投递、PENDING 未恢复、POST 未重试、接口缺少状态时间。 |
+| RED | `mvn -f app/pom.xml test -Dtest='interview.guide.modules.voiceinterview.service.VoiceInterviewEvaluationRecoveryTest,interview.guide.modules.voiceinterview.controller.VoiceInterviewControllerEvaluationTest'` | 失败 | 5 个用例全部失败：异常断线和超时会话未投递、PENDING 未恢复、POST 未重试、接口缺少状态时间。 |
 | RED | `pnpm exec node --test src/pages/voiceEvaluationStatus.test.ts` | 失败 | 状态展示策略模块尚不存在。 |
 | RED | `VoiceInterviewEvaluationRecoveryTest.shouldInvalidateSessionCacheAfterEvaluationStatusChanges` | 失败 | 评估状态变化后旧会话缓存未失效。 |
 | RED | `VoiceInterviewEvaluationServiceTest` | 失败 | 无有效对话时评估仍写入 0 分。 |
 | RED | `shouldUseThreeMinutePendingRecoveryThreshold` 与前端活动状态刷新测试 | 失败 | 后端恢复与前端提示使用同一时间边界，且活动任务未声明需要刷新时间展示。 |
 | GREEN | 上述后端定向测试 | 通过 | 可靠投递、自动恢复、显式重试、状态时间和缓存一致性全部转绿。 |
 | GREEN | `pnpm exec node --test src/pages/voiceEvaluationStatus.test.ts` | 通过 | 4 个排队、延迟、处理、失败和活动状态刷新用例通过。 |
-| 回归 | `./gradlew :app:test --no-daemon` | 通过 | 完整后端测试套件通过。 |
+| 回归 | `mvn -f app/pom.xml test` | 通过 | 完整后端测试套件通过。 |
 | 回归 | `pnpm exec node --test ...` | 通过 | 前端现有 17 个 Node 测试全部通过。 |
 | 构建 | `pnpm run build` | 通过 | TypeScript 检查和 Vite 生产构建通过。 |
 
@@ -43,6 +43,6 @@
 
 ## 覆盖率与已知说明
 
-`app/build.gradle` 未配置 JaCoCo 或其他覆盖率任务，因此无法提供数值覆盖率。新增测试直接覆盖本次修改的关键状态分支和恢复路径。
+`app/pom.xml` 未配置 JaCoCo 或其他覆盖率插件，因此无法提供数值覆盖率。新增测试直接覆盖本次修改的关键状态分支和恢复路径。
 
 浏览器验收使用 ID 3、4、5 的临时本地会话；验收结束后已通过业务删除接口精确清理，并确认数据库中相关记录数量为 0。测试时发现 8080 已有开发进程，因此当前代码临时运行在 8081，未停止或修改原有进程。

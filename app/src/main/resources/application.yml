@@ -27,7 +27,12 @@ springdoc:
 
 spring:
   config:
-    import: optional:classpath:voice-interview-opening.yml
+    # .env 供下面 ${VAR:default} 占位符取值；两条导入分别覆盖 mvn spring-boot:run（工作目录 app/）
+    # 与 IDE 直接运行（工作目录为仓库根）两种启动方式
+    import:
+      - optional:classpath:voice-interview-opening.yml
+      - optional:file:../.env[extension=.properties][encoding=utf-8]
+      - optional:file:.env[extension=.properties][encoding=utf-8]
   application:
     name: ai-interview-platform
 

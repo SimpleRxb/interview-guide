@@ -6,7 +6,7 @@ Spring Boot 4.1.0 + Java 21 + Spring AI 2.0.0 + React 面试平台。
 
 ## Tech Stack
 
-- Backend: Spring Boot 4.1.0 / Java 21 / Gradle / Spring AI 2.0.0
+- Backend: Spring Boot 4.1.0 / Java 21 / Maven / Spring AI 2.0.0
 - Database: PostgreSQL + pgvector，向量维度 1024，距离类型 COSINE
 - Cache & async: Redis / Redisson / Redis Stream
 - Storage & parsing: RustFS/S3 / Apache Tika
@@ -16,9 +16,9 @@ Spring Boot 4.1.0 + Java 21 + Spring AI 2.0.0 + React 面试平台。
 ## Commands
 
 ```bash
-./gradlew :app:compileJava
-./gradlew :app:test --no-daemon
-./gradlew :app:bootRun
+mvn -f app/pom.xml compile
+mvn -f app/pom.xml test
+mvn -f app/pom.xml spring-boot:run
 ```
 
 ```bash
@@ -87,7 +87,7 @@ docker compose -f docker-compose.dev.yml up -d
 - 后端测试使用 JUnit 5 + Mockito + AssertJ。
 - 测试意图用中文 `@DisplayName` 描述，复杂场景用 `@Nested` 分组。
 - 集成测试使用 H2 配置；限流相关测试需要真实 Redis。
-- 改后端公共能力时至少运行 `./gradlew :app:test --no-daemon`。
+- 改后端公共能力时至少运行 `mvn -f app/pom.xml test`。
 - 改前端时至少运行 `cd frontend && pnpm run build`。
 
 ## Never Do

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import interview.guide.common.EvalEnv;
 import interview.guide.common.ai.ApiPathResolver;
 import interview.guide.common.ai.LlmProviderRegistry;
 import interview.guide.modules.voiceinterview.config.VoiceInterviewProperties;
@@ -19,7 +20,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -33,14 +34,14 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** 仅显式运行：不读取业务数据、不启动数据库，实际付费调用最多正常路径 7 次。 */
 @Tag("voice-context-eval")
-@EnabledIfEnvironmentVariable(named = "RUN_VOICE_CONTEXT_EVAL", matches = "true")
+@EnabledIf("interview.guide.common.EvalEnv#voiceContextEnabled")
 class VoiceContextEvaluationTest {
   @Test
   @DisplayName("虚构六十轮会话：记录真实摘要成本及三组交替顺序的生成对照")
   void compareLongHistory() throws Exception {
-    String key = System.getenv("AI_BAILIAN_API_KEY");
+    String key = EvalEnv.get("AI_BAILIAN_API_KEY", null);
     assertThat(key).as("需要 AI_BAILIAN_API_KEY（不要将值写入报告）").isNotBlank();
-    String modelName = System.getenv().getOrDefault("AI_MODEL", "qwen3.5-flash");
+    String modelName = EvalEnv.get("AI_MODEL", "qwen3.5-flash");
     var api = ApiPathResolver.buildOpenAiClient(
         "https://dashscope.aliyuncs.com/compatible-mode/v1", key, 10000, 90000);
     var delegate = OpenAiChatModel.builder().openAiClient(api).openAiClientAsync(api.async())
@@ -119,7 +120,7 @@ class VoiceContextEvaluationTest {
     report.put("retainedTurns", compressed.recent().size());
     report.put("coveredTurns", compressed.coveredTurns());
     report.put("calls", calls);
-    Path dir = Path.of(System.getProperty("voiceEval.reportDir", "build/reports/voice-context-eval"));
+    Path dir = Path.of(System.getProperty("voiceEval.reportDir", "target/reports/voice-context-eval"));
     Files.createDirectories(dir);
     String id = "voice-context-" + System.currentTimeMillis();
     Files.writeString(dir.resolve(id + ".json"), JsonMapper.builder().build()

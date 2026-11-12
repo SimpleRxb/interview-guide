@@ -17,7 +17,7 @@
 
 ### RED：状态机与旧 Worker 复现
 
-- 执行：`./gradlew :app:test --tests 'interview.guide.modules.knowledgebase.service.QuestionGenerationAsyncTest' --no-daemon`
+- 执行：`mvn -f app/pom.xml test -Dtest='interview.guide.modules.knowledgebase.service.QuestionGenerationAsyncTest'`
 - 结果：13 个测试中 2 个按预期失败。
 - 失败证据：首次消费失败后状态仍为 `PROCESSING`；任务 ID 变化后旧 Worker 仍保存了结果。
 - 检查点：`7915d65 test: 添加题目异步生成可靠性复现用例`
@@ -30,8 +30,8 @@
 
 ### GREEN：后端可靠性
 
-- 执行：`./gradlew :app:test --tests 'interview.guide.modules.knowledgebase.service.KnowledgeBaseQuestionServiceTest' --tests 'interview.guide.modules.knowledgebase.service.QuestionGeneration*Test' --no-daemon`
-- 结果：`BUILD SUCCESSFUL`。
+- 执行：`mvn -f app/pom.xml test -Dtest='interview.guide.modules.knowledgebase.service.KnowledgeBaseQuestionServiceTest,interview.guide.modules.knowledgebase.service.QuestionGeneration*Test'`
+- 结果：构建通过。
 - 保证：任务创建和投递分离、原子领取、重试复位、过期任务恢复、旧结果丢弃及题目替换完成事务均满足测试契约。
 - 检查点：`3ac6178 fix: 完善知识库题目异步生成可靠性`
 
@@ -46,8 +46,8 @@
 
 - 删除旧同步生成入口和 `KnowledgeBaseQuestionGenerationResult`。
 - 将批内去重、分类兜底、已有分类和已有题目 Prompt 覆盖迁移到异步生成组件测试。
-- 执行：后端定向测试和全量 `./gradlew :app:test --no-daemon`。
-- 结果：`BUILD SUCCESSFUL`，全量测试耗时 1m49s。
+- 执行：后端定向测试和全量 `mvn -f app/pom.xml test`。
+- 结果：构建通过，全量测试耗时 1m49s。
 
 ## Test specification
 

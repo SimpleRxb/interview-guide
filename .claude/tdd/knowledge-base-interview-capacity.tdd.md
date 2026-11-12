@@ -12,10 +12,10 @@
 
 | 行为 | RED 证据 | GREEN 证据 | 保证 |
 | --- | --- | --- | --- |
-| 严格追问数量与容量矩阵 | `./gradlew :app:test --tests 'interview.guide.modules.knowledgebase.service.KnowledgeBaseInterviewServiceTest' --tests 'interview.guide.modules.knowledgebase.service.QuestionGenerationAsyncTest' --no-daemon` 因容量响应、容量方法和专用错误码不存在而编译失败 | 同一命令 `BUILD SUCCESSFUL` | 追问不足时拒绝创建；非空题干才计数；容量按方向和难度统计 |
+| 严格追问数量与容量矩阵 | `mvn -f app/pom.xml test -Dtest='interview.guide.modules.knowledgebase.service.KnowledgeBaseInterviewServiceTest,interview.guide.modules.knowledgebase.service.QuestionGenerationAsyncTest'` 因容量响应、容量方法和专用错误码不存在而编译失败 | 同一命令构建通过 | 追问不足时拒绝创建；非空题干才计数；容量按方向和难度统计 |
 | 生成追问目标归一化 | 上述后端 RED 测试引用尚未实现的目标归一化行为 | `QuestionGenerationAsyncTest` 通过 | 超出目标的追问被截断；不足目标的有效草稿仍保存 |
 | 前端容量与质量提示 | `pnpm run test:interview-capacity` 因 `interviewCapacity.ts` 不存在而失败 | 同一命令 4 项测试全部通过 | 保留严格数量选择、显示最大可保证数量、主问题不足时给出准确提示 |
-| 全量回归 | 不适用 | `./gradlew :app:test --no-daemon`，`BUILD SUCCESSFUL in 1m 47s` | 后端现有测试未回归 |
+| 全量回归 | 不适用 | `mvn -f app/pom.xml test`，构建通过（迁移前 Gradle 记录耗时 1m 47s） | 后端现有测试未回归 |
 | 前端回归 | 不适用 | 三组 Node 测试全部通过；`pnpm run build` 成功 | TypeScript、Vite 生产构建及现有纯函数测试通过 |
 
 ## 测试规格

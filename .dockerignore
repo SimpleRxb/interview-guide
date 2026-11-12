@@ -8,10 +8,9 @@
 .gitignore
 .gitattributes
 
-# Gradle
+# Maven output & legacy Gradle caches
+**/target/
 .gradle
-**/build/
-!gradle/wrapper/gradle-wrapper.jar
 
 # Node.js (Frontend)
 **/node_modules

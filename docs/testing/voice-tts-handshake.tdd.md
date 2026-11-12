@@ -11,7 +11,7 @@
 ### RED：复现 SDK 握手失败后阻塞
 
 - 测试：`QwenTtsServiceTest.shouldReturnPromptlyWhenWebSocketHandshakeFails`
-- 命令：`./gradlew :app:test --tests 'interview.guide.modules.voiceinterview.service.QwenTtsServiceTest.shouldReturnPromptlyWhenWebSocketHandshakeFails' --no-daemon`
+- 命令：`mvn -f app/pom.xml test -Dtest='interview.guide.modules.voiceinterview.service.QwenTtsServiceTest#shouldReturnPromptlyWhenWebSocketHandshakeFails'`
 - 结果：失败；2 秒预抢占超时触发 `ExecutionTimeoutException`。
 - 证明：DashScope SDK 2.22.7 的失败回调只记录错误，没有解除 `connect()` 的等待。
 
@@ -20,7 +20,7 @@
 - 同一回归测试修复后通过。
 - `QwenTtsServiceTest` 与 `VoiceInterviewWebSocketHandlerTest` 定向测试通过。
 - 使用当前 `.env` 凭据执行一次真实 DashScope 短文本合成，成功返回非空音频。
-- 完整命令 `./gradlew :app:test --no-daemon` 通过，耗时 1 分 49 秒。
+- 完整命令 `mvn -f app/pom.xml test` 通过，耗时 1 分 49 秒。
 
 ## 测试规格
 
@@ -29,7 +29,7 @@
 | 1 | WebSocket 握手失败时 TTS 调用不会永久阻塞 | `QwenTtsServiceTest.shouldReturnPromptlyWhenWebSocketHandshakeFails` | 单元/网络失败回归 | PASS |
 | 2 | TTS 与语音 WebSocket 既有行为未回归 | `QwenTtsServiceTest`、`VoiceInterviewWebSocketHandlerTest` | 单元 | PASS |
 | 3 | 当前 DashScope 配置仍可完成真实语音合成 | 临时 `QwenTtsLiveSmokeTest`，验证后已删除 | 在线烟测 | PASS |
-| 4 | 后端测试套件保持通过 | `./gradlew :app:test --no-daemon` | 回归 | PASS |
+| 4 | 后端测试套件保持通过 | `mvn -f app/pom.xml test` | 回归 | PASS |
 
 ## 覆盖率与已知缺口
 

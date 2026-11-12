@@ -49,7 +49,7 @@ InterviewGuide 是一个集成了简历分析、模拟面试（文字 + 语音�
 | DashScope SDK         | 2.22.7 | 语音识别/合成（Qwen3 ASR/TTS）|
 | AWS S3 SDK            | 2.29.51 | S3 兼容对象存储（MinIO/RustFS）|
 | WebSocket             | -     | 语音面试实时双向通信          |
-| Gradle                | 9.6.1 | 构建工具                      |
+| Maven                 | 3.9+ | 构建工具（POM 在 `app/pom.xml`） |
 
 技术选型常见问题解答：
 
@@ -57,7 +57,7 @@ InterviewGuide 是一个集成了简历分析、模拟面试（文字 + 语音�
 2. 为什么引入 Redis？
    - Redis 替代 `ConcurrentHashMap` 实现面试会话的缓存。
    - 基于 Redis Stream 实现简历分析、知识库向量化等场景的异步（还能解耦，分析和向量化可以使用其他编程语言来做）。不使用 [Kafka](https://javaguide.cn/high-performance/message-queue/kafka-questions-01.html) 这类成熟的消息队列，也是不想引入太多组件。
-3. 构建工具为什么选择 Gradle？个人更喜欢用 Gradle，也写过相关的文章：[Gradle核心概念总结](https://javaguide.cn/tools/gradle/gradle-core-concepts.html)。
+3. 构建工具为什么选择 Maven？依赖和插件版本集中在单个 `app/pom.xml`，IDE、CI 与镜像构建的通用支持最好，团队接手成本更低。
 
 ### 前端技术
 
@@ -342,7 +342,7 @@ interview-postgres 0.0.0.0:5432->5432/tcp
 interview-redis    0.0.0.0:6379->6379/tcp
 ```
 
-如果只看到 `interview-postgres 5432/tcp` 或 `interview-redis 6379/tcp`，说明容器内部服务是启动的，但端口没有发布到宿主机。此时通过 `./gradlew :app:bootRun` 从宿主机启动后端，会出现类似 `Connection to localhost:5432 refused` 的报错。可以重建容器配置（不会删除 Docker volume 中的数据）：
+如果只看到 `interview-postgres 5432/tcp` 或 `interview-redis 6379/tcp`，说明容器内部服务是启动的，但端口没有发布到宿主机。此时通过 `mvn -f app/pom.xml spring-boot:run` 从宿主机启动后端，会出现类似 `Connection to localhost:5432 refused` 的报错。可以重建容器配置（不会删除 Docker volume 中的数据）：
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d --force-recreate postgres redis
@@ -356,16 +356,16 @@ docker compose -f docker-compose.dev.yml up -d --force-recreate postgres redis
 | Redis        | `localhost:6379` | -               | -               |
 | RustFS 控制台 | `localhost:9001` | `rustfsadmin`   | `rustfsadmin`   |
 
-> **注意**：应用启动时会自动检查并创建 `interview-guide` Bucket。使用 `docker-compose.dev.yml` + `:app:bootRun` 时，请确保 `.env` 中的 `APP_STORAGE_ACCESS_KEY` / `APP_STORAGE_SECRET_KEY` 与 RustFS 账号一致，例如都设为 `rustfsadmin`。如果本地已有 MinIO 或其他 S3 兼容存储，也可以直接使用，在 `.env` 中修改 `APP_STORAGE_*` 配置即可。
+> **注意**：应用启动时会自动检查并创建 `interview-guide` Bucket。使用 `docker-compose.dev.yml` + `mvn -f app/pom.xml spring-boot:run` 时，请确保 `.env` 中的 `APP_STORAGE_ACCESS_KEY` / `APP_STORAGE_SECRET_KEY` 与 RustFS 账号一致，例如都设为 `rustfsadmin`。如果本地已有 MinIO 或其他 S3 兼容存储，也可以直接使用，在 `.env` 中修改 `APP_STORAGE_*` 配置即可。
 
-> **IDEA Docker Debug 提示**：如果在 macOS 上使用 IntelliJ IDEA 的 Docker 调试方式启动后端，遇到 `mounts denied: The path /Applications/IntelliJ IDEA.app/Contents/lib is not shared from the host`，请在 Docker Desktop 的 `Settings -> Resources -> File Sharing` 中加入 `/Applications/IntelliJ IDEA.app/Contents/lib`（或整个 `/Applications/IntelliJ IDEA.app`）以及当前项目目录，然后重启 Docker/IDEA 后再运行。普通 `./gradlew :app:bootRun` 和 `docker compose` 启动不需要这个额外共享路径。
+> **IDEA Docker Debug 提示**：如果在 macOS 上使用 IntelliJ IDEA 的 Docker 调试方式启动后端，遇到 `mounts denied: The path /Applications/IntelliJ IDEA.app/Contents/lib is not shared from the host`，请在 Docker Desktop 的 `Settings -> Resources -> File Sharing` 中加入 `/Applications/IntelliJ IDEA.app/Contents/lib`（或整个 `/Applications/IntelliJ IDEA.app`）以及当前项目目录，然后重启 Docker/IDEA 后再运行。普通 `mvn -f app/pom.xml spring-boot:run` 和 `docker compose` 启动不需要这个额外共享路径。
 
 ### 4. 启动应用
 
 **后端：**
 
 ```bash
-./gradlew :app:bootRun
+mvn -f app/pom.xml spring-boot:run
 ```
 
 后端服务启动于 `http://localhost:8080`
@@ -418,7 +418,7 @@ cp .env.example .env
 docker-compose up -d --build
 ```
 
-> **仅启动依赖服务**：如果只想本地开发调试（用 `./gradlew :app:bootRun` 启动后端），可以只启动基础设施：`docker compose up -d postgres redis minio createbuckets`。将 `.env.example` 复制为 `.env` 并填写 `AI_BAILIAN_API_KEY` 即可，默认账号与 `docker-compose.yml` 一致；Bucket 会由初始化任务或应用启动检查自动创建。
+> **仅启动依赖服务**：如果只想本地开发调试（用 `mvn -f app/pom.xml spring-boot:run` 启动后端），可以只启动基础设施：`docker compose up -d postgres redis minio createbuckets`。将 `.env.example` 复制为 `.env` 并填写 `AI_BAILIAN_API_KEY` 即可，默认账号与 `docker-compose.yml` 一致；Bucket 会由初始化任务或应用启动检查自动创建。
 
 ### 3. 服务访问
 
@@ -561,9 +561,9 @@ docker compose -f docker-compose.dev.yml up -d --force-recreate postgres redis
 
 **原因简述**：后端与 Logback 按 **UTF-8** 输出日志；中文 Windows 下控制台默认多为 **GBK（代码页 936）**，且 PowerShell 的 `$OutputEncoding`、控制台编码若未统一为 UTF-8，显示时就会把同一串字节解释错，出现乱码。
 
-**本项目已做的配置**（一般无需再改）：根目录 `gradle.properties`（Gradle 进程 UTF-8）、`app/src/main/resources/logback-spring.xml`（控制台日志 UTF-8）、`app/build.gradle` 中 `bootRun` 的 JVM 参数（含 `file.encoding` / `stdout.encoding` / `stderr.encoding`）。
+**本项目已做的配置**（一般无需再改）：`app/src/main/resources/logback-spring.xml`（控制台日志 UTF-8）、`app/pom.xml` 中 surefire 的 `argLine` 与 spring-boot 插件的 `jvmArguments`（含 `file.encoding` / `stdout.encoding` / `stderr.encoding`）。
 
-**仍乱码时（PowerShell 侧）**：在启动 `.\gradlew.bat :app:bootRun` 的同一终端先执行下面一段；或写入 **PowerShell 配置文件**（`$PROFILE`）以便每次自动生效：
+**仍乱码时（PowerShell 侧）**：在启动 `mvn -f app/pom.xml spring-boot:run` 的同一终端先执行下面一段；或写入 **PowerShell 配置文件**（`$PROFILE`）以便每次自动生效：
 
 ```powershell
 chcp 65001 | Out-Null
@@ -574,7 +574,7 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 新建或编辑配置文件：`if (!(Test-Path $PROFILE)) { New-Item -Path $PROFILE -ItemType File -Force }`，再 `notepad $PROFILE` 将上述内容粘贴保存；新开终端后生效，或执行 `. $PROFILE` 立即加载。若提示脚本无法执行，可执行一次：`Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`。
 
-在 PowerShell 中建议使用 `.\gradlew.bat :app:bootRun`（或仓库根目录的 `.\gradlew.bat`），避免与执行策略、路径解析相关的问题。
+在 PowerShell 中运行前先确认 Maven 可用：`mvn -v` 能正常输出版本号（Windows 上 `mvn` 解析为 `mvn.cmd`，不需要额外处理脚本执行策略）。
 
 ## 贡献
 

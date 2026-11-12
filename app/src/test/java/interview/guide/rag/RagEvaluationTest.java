@@ -1,5 +1,6 @@
 package interview.guide.rag;
 
+import interview.guide.common.EvalEnv;
 import interview.guide.modules.knowledgebase.model.KnowledgeBaseEntity;
 import interview.guide.modules.knowledgebase.model.VectorStatus;
 import interview.guide.modules.knowledgebase.repository.KnowledgeBaseRepository;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -45,13 +46,13 @@ import static org.assertj.core.api.Assertions.fail;
  * RAG 测评（P1-01）。
  *
  * <p>运行方式见 app/src/test/resources/rag-eval/README.md：
- * <pre>RUN_RAG_EVAL=true REDIS_DATABASE=1 ./gradlew :app:ragEvaluation --no-daemon</pre>
+ * <pre>RUN_RAG_EVAL=true REDIS_DATABASE=1 mvn -f app/pom.xml test -P rag-eval</pre>
  *
- * <p>双保险：rag-eval 标签（普通 :app:test 排除）+ RUN_RAG_EVAL 环境变量。
+ * <p>双保险：rag-eval 标签（普通 mvn test 排除）+ RUN_RAG_EVAL 环境变量或 run.rag.eval 系统属性。
  * 环境使用独立可销毁的 PostgreSQL 逻辑库 interview_guide_rag_eval，不触碰开发库。
  */
 @Tag("rag-eval")
-@EnabledIfEnvironmentVariable(named = "RUN_RAG_EVAL", matches = "true")
+@EnabledIf("interview.guide.common.EvalEnv#ragEnabled")
 @ActiveProfiles("rag-eval")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class RagEvaluationTest {
@@ -59,9 +60,9 @@ class RagEvaluationTest {
   private static final String EVAL_DB = "interview_guide_rag_eval";
   private static final String DATASET = "rag-eval/dataset-v1.jsonl";
   private static final String REPORT_DIR =
-      System.getProperty("ragEval.reportDir", "build/reports/rag-eval");
+      System.getProperty("ragEval.reportDir", "target/reports/rag-eval");
   private static final String RUN_ID =
-      "rag-eval-" + System.getenv().getOrDefault("RAG_EVAL_RUN_TAG", "baseline") + "-" + System.currentTimeMillis();
+      "rag-eval-" + EvalEnv.get("RAG_EVAL_RUN_TAG", "baseline") + "-" + System.currentTimeMillis();
 
   private static String evalDbUrl;
   private static String sourceDbUrl;
@@ -92,7 +93,7 @@ class RagEvaluationTest {
   static void recreateDatabase() {
     // rag-eval Profile 已把 Redis database 固定为 1（可用 REDIS_DATABASE 覆盖），
     // 这里兜底拒绝显式指定 database 0 的运行，防止消费开发环境 Stream 消息
-    String redisDatabase = System.getenv("REDIS_DATABASE");
+    String redisDatabase = env("REDIS_DATABASE", null);
     if ("0".equals(redisDatabase)) {
       fail("REDIS_DATABASE=0 会连接开发环境 Redis，测评运行拒绝启动");
     }
@@ -401,7 +402,7 @@ class RagEvaluationTest {
           sha256(new ClassPathResource("prompts/" + prompt).getInputStream().readAllBytes()));
     }
     env.putAll(configurationSnapshot());
-    env.put("redisDatabase", System.getenv().getOrDefault("REDIS_DATABASE", "1(rag-eval Profile 默认)"));
+    env.put("redisDatabase", EvalEnv.get("REDIS_DATABASE", "1(rag-eval Profile 默认)"));
     env.put("evalDatabase", EVAL_DB + "（每 run 重建）");
     env.put("tokenUsage", "null（当前链路 .content() 无法取得 usage，补齐属 P1-04）");
     env.put("springAiVersion", springAiVersion());
@@ -611,7 +612,6 @@ class RagEvaluationTest {
   }
 
   private static String env(String key, String defaultValue) {
-    String value = System.getenv(key);
-    return value == null || value.isBlank() ? defaultValue : value;
+    return EvalEnv.get(key, defaultValue);
   }
 }
