@@ -1,6 +1,6 @@
 /*
  * AI Interview Platform - Backend Application
- * Spring Boot 4.1 + Java 25 + Spring AI 2.0 + PostgreSQL + pgvector + RustFS + Redis
+ * Spring Boot 4.1 + Java 21 + Spring AI 2.0 + PostgreSQL + pgvector + RustFS + Redis
  */
 
 plugins {
@@ -98,14 +98,14 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
 // 全局UTF-8编码配置
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    options.release = 25
+    options.release = 21
 }
 
 tasks.named('test') {

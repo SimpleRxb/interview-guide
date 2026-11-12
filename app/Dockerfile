@@ -2,7 +2,7 @@
 # 第一阶段：构建环境 (Builder Stage)
 # 作用：使用包含 JDK 和 Gradle 的完整镜像来编译源代码
 # ==============================================================================
-FROM eclipse-temurin:25-jdk AS builder
+FROM eclipse-temurin:21-jdk AS builder
 # 设置工作目录，后续命令都在这个目录下执行
 WORKDIR /workspace
 
@@ -41,7 +41,7 @@ RUN ./gradlew :app:bootJar --no-daemon -x test
 # 作用：使用轻量级的 JRE 镜像来运行编译好的 JAR 包
 # 技巧：多阶段构建 (Multi-stage build) 可以显著减小最终镜像的体积
 # ==============================================================================
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # 从第一阶段 (builder) 中复制生成的 JAR 文件到当前镜像

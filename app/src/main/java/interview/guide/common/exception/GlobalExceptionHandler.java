@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
             ErrorLogSanitizer.forLogging(e));
 
         return switch (e.getCause()) {
-            case SocketTimeoutException _ ->
+            case SocketTimeoutException ignored ->
                 Result.error(ErrorCode.AI_SERVICE_TIMEOUT, "AI服务响应超时，请稍后重试");
             case null, default -> {
                 String message = e.getMessage();
